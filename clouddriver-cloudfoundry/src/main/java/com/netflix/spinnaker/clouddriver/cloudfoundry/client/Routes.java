@@ -96,13 +96,13 @@ public class Routes {
 
     List<String> queryParams = new ArrayList<>();
     queryParams.add("host:" + host);
-    queryParams.add("organization_guid" + orgId);
+    queryParams.add("organization_guid:" + orgId);
     if (domainId != null)
-      queryParams.add("domain_guid" + domainId);
+      queryParams.add("domain_guid:" + domainId);
     if (path != null)
-      queryParams.add("path" + path);
+      queryParams.add("path:" + path);
     if (port != null)
-      queryParams.add("port" + port.toString());
+      queryParams.add("port:" + port.toString());
 
     return collectPageResources("route mappings", pg -> api.all(pg, queryParams))
       .stream().findFirst().map(this::map).orElse(null);

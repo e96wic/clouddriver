@@ -89,8 +89,9 @@ public class Applications {
 
   @Nullable
   public String findServerGroupId(String name, String spaceId) {
-    return api.all(null, singletonList(name), singletonList(spaceId)).getResources().stream()
-      .findFirst().map(Application::getGuid).orElse(null);
+    return safelyCall(() -> api.all(null, singletonList(name), singletonList(spaceId)))
+      .flatMap(page -> page.getResources().stream().findFirst().map(Application::getGuid))
+      .orElse(null);
   }
 
   private CloudFoundryServerGroup map(Application application) {
@@ -240,7 +241,7 @@ public class Applications {
     safelyCall(() -> api.deleteAppInstance(guid, index));
   }
 
-  public CloudFoundryServerGroup createApplication(String appName, CloudFoundrySpace space, String buildpack,
+  public CloudFoundryServerGroup createApplication(String appName, CloudFoundrySpace space, @Nullable String buildpack,
                                                    Map<String, String> environmentVariables) throws CloudFoundryApiException {
     Map<String, ToOneRelationship> relationships = new HashMap<>();
     relationships.put("space", new ToOneRelationship(new Relationship(space.getId())));
@@ -294,7 +295,7 @@ public class Applications {
       .orElseThrow(() -> new CloudFoundryApiException("Cloud Foundry signaled that build creation succeeded but failed to provide a response."));
   }
 
-  public boolean buildCompleted(String buildGuid) throws CloudFoundryApiException {
+  public Boolean buildCompleted(String buildGuid) throws CloudFoundryApiException {
     switch (safelyCall(() -> api.getBuild(buildGuid)).map(Build::getState).orElse(Build.State.FAILED)) {
       case FAILED:
         throw new CloudFoundryApiException("Failed to build droplet");
@@ -329,7 +330,7 @@ public class Applications {
   }
 
   @Nullable
-  ProcessStats.State getProcessState(String appGuid) throws CloudFoundryApiException {
+  public ProcessStats.State getProcessState(String appGuid) throws CloudFoundryApiException {
     return safelyCall(() -> this.api.findProcessStatsById(appGuid))
       .flatMap(pr -> pr.getResources().stream().findAny().map(ProcessStats::getState))
       .orElse(null);
