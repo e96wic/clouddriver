@@ -37,15 +37,16 @@ public class UpsertCloudFoundryLoadBalancerAtomicOperation implements AtomicOper
 
   @Override
   public CloudFoundryLoadBalancer operate(List priorOutputs) {
-    getTask().updateStatus(PHASE, "Creating load balancer in " + description.getRegion());
+    getTask().updateStatus(PHASE, "Creating load balancer in '" + description.getRegion() + "'");
 
     CloudFoundryClient client = description.getClient();
-    CloudFoundryLoadBalancer loadBalancer = client.getRoutes().createRoute(description.getHost(), description.getPath(), description.getPort(), description.getDomain().getId(), description.getSpace().getId());
+    CloudFoundryLoadBalancer loadBalancer = client.getRoutes().createRoute(description.getHost(), description.getPath(),
+      description.getPort(), description.getDomain().getId(), description.getSpace().getId());
 
     if (loadBalancer != null) {
       getTask().updateStatus(PHASE, "Done creating load balancer");
     } else {
-      getTask().updateStatus(PHASE, "Error load balancer already exists in another organization and space");
+      getTask().updateStatus(PHASE, "Load balancer already exists in another organization and space");
       getTask().fail();
     }
 

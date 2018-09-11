@@ -27,6 +27,8 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.CloudFoundryOperationUtils.describeProcessState;
+
 @RequiredArgsConstructor
 public class ScaleCloudFoundryServerGroupAtomicOperation implements AtomicOperation<Void> {
   private static final String PHASE = "RESIZE_SERVER_GROUP";
@@ -40,7 +42,7 @@ public class ScaleCloudFoundryServerGroupAtomicOperation implements AtomicOperat
 
   @Override
   public Void operate(List priorOutputs) {
-    getTask().updateStatus(PHASE, "Initializing resizing of server group " + description.getServerGroupName());
+    getTask().updateStatus(PHASE, "Resizing '" + description.getServerGroupName() + "'");
 
     final CloudFoundryClient client = description.getClient();
 
@@ -52,12 +54,12 @@ public class ScaleCloudFoundryServerGroupAtomicOperation implements AtomicOperat
       null, getTask(), description.getServerGroupName(), PHASE);
 
     if (state != ProcessStats.State.RUNNING) {
-      getTask().updateStatus(PHASE, "Failed start server group " + description.getServerGroupName() + " which instead has status " + state.toString().toLowerCase());
+      getTask().updateStatus(PHASE, "Failed to start '" + description.getServerGroupName() + "' which instead " + describeProcessState(state));
       getTask().fail();
       return null;
     }
 
-    getTask().updateStatus(PHASE, "Done resizing server group " + description.getServerGroupName());
+    getTask().updateStatus(PHASE, "Resized '" + description.getServerGroupName() + "'");
 
     return null;
   }

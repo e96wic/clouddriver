@@ -40,7 +40,7 @@ public class TerminateCloudFoundryInstancesAtomicOperation implements AtomicOper
 
   @Override
   public Void operate(List priorOutputs) {
-    getTask().updateStatus(PHASE, "Initializing termination of " + instanceDescription());
+    getTask().updateStatus(PHASE, "Terminating " + instanceDescription());
     final CloudFoundryClient client = description.getClient();
 
     boolean oneOrMoreFailed = false;
@@ -49,9 +49,9 @@ public class TerminateCloudFoundryInstancesAtomicOperation implements AtomicOper
         String serverGroupId = instance.substring(0, instance.lastIndexOf("-"));
         String instanceIndex = instance.substring(instance.lastIndexOf("-") + 1);
         client.getApplications().deleteAppInstance(serverGroupId, instanceIndex);
-        getTask().updateStatus(PHASE, "Succeeded in terminating " + instanceDescription());
+        getTask().updateStatus(PHASE, "Terminated " + instanceDescription());
       } catch (CloudFoundryApiException e) {
-        getTask().updateStatus(PHASE, "Failed to terminate " + instance + ": " + e.getMessage());
+        getTask().updateStatus(PHASE, "Failed to terminate '" + instance + "': " + e.getMessage());
         oneOrMoreFailed = true;
       }
     }
@@ -64,6 +64,9 @@ public class TerminateCloudFoundryInstancesAtomicOperation implements AtomicOper
   }
 
   private String instanceDescription() {
-    return "application instance(s) [" + Arrays.stream(description.getInstanceIds()).collect(joining(", ")) + "]";
+    return description.getInstanceIds().length == 1 ?
+      "application instance '" + description.getInstanceIds()[0] + "'" :
+      "application instances [" + Arrays.stream(description.getInstanceIds())
+        .map(id -> "'" + id + "'").collect(joining(", ")) + "]";
   }
 }

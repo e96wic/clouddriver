@@ -38,6 +38,7 @@ import java.io.*;
 import java.util.*;
 import java.util.function.Function;
 
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.CloudFoundryOperationUtils.describeProcessState;
 import static java.util.stream.Collectors.*;
 
 @RequiredArgsConstructor
@@ -54,7 +55,7 @@ public class DeployCloudFoundryServerGroupAtomicOperation implements AtomicOpera
 
   @Override
   public DeploymentResult operate(List priorOutputs) {
-    getTask().updateStatus(PHASE, "Initializing deployment of " + description.getApplication());
+    getTask().updateStatus(PHASE, "Deploying '" + description.getApplication() + "'");
 
     CloudFoundryClient client = description.getClient();
 
@@ -83,12 +84,12 @@ public class DeployCloudFoundryServerGroupAtomicOperation implements AtomicOpera
       null, getTask(), description.getServerGroupName(), PHASE);
 
     if (state != ProcessStats.State.RUNNING) {
-      getTask().updateStatus(PHASE, "Failed start server group " + description.getServerGroupName() + ". status " + state.toString().toLowerCase());
+      getTask().updateStatus(PHASE, "Failed to start '" + description.getServerGroupName() + "' which instead " + describeProcessState(state));
       getTask().fail();
       return null;
     }
 
-    getTask().updateStatus(PHASE, "Successfully deployed " + description.getApplication());
+    getTask().updateStatus(PHASE, "Deployed '" + description.getApplication() + "'");
 
     return deploymentResult();
   }
@@ -105,7 +106,7 @@ public class DeployCloudFoundryServerGroupAtomicOperation implements AtomicOpera
 
   private static CloudFoundryServerGroup createApplication(DeployCloudFoundryServerGroupDescription description) {
     CloudFoundryClient client = description.getClient();
-    getTask().updateStatus(PHASE, "Creating application " + description.getServerGroupName());
+    getTask().updateStatus(PHASE, "Creating Cloud Foundry application '" + description.getServerGroupName() + "'");
 
     Map<String, String> convertedEnvVariables = Optional.ofNullable(description.getApplicationAttributes().getEnv())
       .map(env -> env.stream().collect(toMap(Object::toString, Object::toString)))
@@ -113,14 +114,14 @@ public class DeployCloudFoundryServerGroupAtomicOperation implements AtomicOpera
 
     CloudFoundryServerGroup serverGroup = client.getApplications().createApplication(description.getServerGroupName(),
       description.getSpace(), description.getApplicationAttributes().getBuildpack(), convertedEnvVariables);
-    getTask().updateStatus(PHASE, "Completed creating application " + description.getServerGroupName());
+    getTask().updateStatus(PHASE, "Created Cloud Foundry application '" + description.getServerGroupName() + "'");
 
     return serverGroup;
   }
 
   private String buildPackage(String serverGroupId, DeployCloudFoundryServerGroupDescription description) {
     final CloudFoundryClient client = description.getClient();
-    getTask().updateStatus(PHASE, "Creating package for application " + description.getServerGroupName());
+    getTask().updateStatus(PHASE, "Creating package for application '" + description.getServerGroupName() + "'");
 
     final String packageId = client.getApplications().createPackage(serverGroupId);
 
@@ -137,7 +138,7 @@ public class DeployCloudFoundryServerGroupAtomicOperation implements AtomicOpera
         () -> client.getApplications().packageUploadComplete(packageId),
         Function.identity(), null, getTask(), description.getServerGroupName(), PHASE);
 
-      getTask().updateStatus(PHASE, "Completed creating package for application " + description.getServerGroupName());
+      getTask().updateStatus(PHASE, "Completed creating package for application '" + description.getServerGroupName() + "'");
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     } finally {
@@ -151,7 +152,7 @@ public class DeployCloudFoundryServerGroupAtomicOperation implements AtomicOpera
 
   private void buildDroplet(String packageId, String serverGroupId, DeployCloudFoundryServerGroupDescription description) {
     final CloudFoundryClient client = description.getClient();
-    getTask().updateStatus(PHASE, "Building droplet for package " + packageId);
+    getTask().updateStatus(PHASE, "Building droplet for package '" + packageId + "'");
 
     String buildId = client.getApplications().createBuild(packageId);
 
@@ -161,18 +162,18 @@ public class DeployCloudFoundryServerGroupAtomicOperation implements AtomicOpera
     String dropletGuid = client.getApplications().findDropletGuidFromBuildId(buildId);
 
     client.getApplications().setCurrentDroplet(serverGroupId, dropletGuid);
-    getTask().updateStatus(PHASE, "Completed building droplet for package " + packageId);
+    getTask().updateStatus(PHASE, "Droplet built for package '" + packageId + "'");
   }
 
   private void scaleApplication(String serverGroupId, DeployCloudFoundryServerGroupDescription description) {
     CloudFoundryClient client = description.getClient();
-    getTask().updateStatus(PHASE, "Scaling the application to desired state " + description.getServerGroupName());
+    getTask().updateStatus(PHASE, "Scaling application '" + description.getServerGroupName() + "'");
 
     Integer memoryAmount = convertToMb("memory", description.getApplicationAttributes().getMemory());
     Integer diskSizeAmount = convertToMb("disk quota", description.getApplicationAttributes().getDiskQuota());
 
     client.getApplications().scaleApplication(serverGroupId, description.getApplicationAttributes().getInstances(), memoryAmount, diskSizeAmount);
-    getTask().updateStatus(PHASE, "Completed scaling the application to desired state " + description.getServerGroupName());
+    getTask().updateStatus(PHASE, "Scaled application '" + description.getServerGroupName() + "'");
   }
 
   // VisibleForTesting
@@ -192,12 +193,11 @@ public class DeployCloudFoundryServerGroupAtomicOperation implements AtomicOpera
         return Integer.parseInt(value);
     }
 
-    throw new IllegalArgumentException("Invalid size for application " + field + "'" + size + "'");
+    throw new IllegalArgumentException("Invalid size for application " + field + " = '" + size + "'");
   }
 
-  // VisibleForTesting
-  boolean mapRoutes(List<String> routes, CloudFoundrySpace space, String serverGroupId) {
-    getTask().updateStatus(PHASE, "Upserting load balancers");
+  private boolean mapRoutes(List<String> routes, CloudFoundrySpace space, String serverGroupId) {
+    getTask().updateStatus(PHASE, "Creating or updating load balancers");
 
     List<String> badRoutes = new ArrayList<>();
 

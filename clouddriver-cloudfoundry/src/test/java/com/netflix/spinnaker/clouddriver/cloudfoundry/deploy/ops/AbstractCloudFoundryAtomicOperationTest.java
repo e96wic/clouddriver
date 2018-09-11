@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.*;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessStats;
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask;
 import com.netflix.spinnaker.clouddriver.data.task.Status;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
@@ -12,14 +13,14 @@ import static java.util.Collections.emptyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class AbstractCloudFoundryAtomicOperationTest {
-  protected final CloudFoundryClient client;
-  protected final Routes routes;
-  protected final Spaces spaces;
-  protected final Domains domains;
-  protected final Applications applications;
+class AbstractCloudFoundryAtomicOperationTest {
+  final CloudFoundryClient client;
+  final Routes routes;
+  final Spaces spaces;
+  final Domains domains;
+  final Applications applications;
 
-  public AbstractCloudFoundryAtomicOperationTest() {
+  AbstractCloudFoundryAtomicOperationTest() {
     client = mock(CloudFoundryClient.class);
     routes = mock(Routes.class);
     spaces = mock(Spaces.class);
@@ -32,7 +33,7 @@ public class AbstractCloudFoundryAtomicOperationTest {
     when(client.getApplications()).thenReturn(applications);
   }
 
-  public Task runOperation(AtomicOperation<?> op) {
+  Task runOperation(AtomicOperation<?> op) {
     Task task = new DefaultTask("test");
     TaskRepository.threadLocalTask.set(task);
     op.operate(emptyList());

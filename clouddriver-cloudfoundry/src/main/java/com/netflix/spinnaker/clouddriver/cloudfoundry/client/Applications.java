@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ApplicationService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.CreateApplication;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ApplicationEnv;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.MapRoute;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.*;
@@ -255,8 +254,10 @@ public class Applications {
       .orElseThrow(() -> new CloudFoundryApiException("Cloud Foundry signaled that application creation succeeded but failed to provide a response."));
   }
 
-  public void scaleApplication(String guid, Integer instances, Integer memInMb, Integer diskInMb) throws CloudFoundryApiException {
-    if (memInMb == null && diskInMb == null && instances == null) {
+  public void scaleApplication(String guid, @Nullable Integer instances, @Nullable Integer memInMb, @Nullable Integer diskInMb) throws CloudFoundryApiException {
+    if ((memInMb == null || memInMb == 0)
+      && (diskInMb == null || diskInMb == 0)
+      && (instances == null || instances == 0)) {
       return;
     }
     safelyCall(() -> api.scaleApplication(guid, new ScaleApplication(instances, memInMb, diskInMb)));

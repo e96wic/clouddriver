@@ -39,7 +39,7 @@ public class DeleteCloudFoundryLoadBalancerAtomicOperation implements AtomicOper
     CloudFoundryClient client = description.getClient();
 
     if (description.getLoadBalancer() == null) {
-      getTask().updateStatus(PHASE, "Load balancer " + description.getLoadBalancer().getName() + " does not exist");
+      getTask().updateStatus(PHASE, "Load balancer does not exist");
       getTask().fail();
     } else {
       getTask().updateStatus(PHASE, "Deleting load balancer " + description.getLoadBalancer().getName());

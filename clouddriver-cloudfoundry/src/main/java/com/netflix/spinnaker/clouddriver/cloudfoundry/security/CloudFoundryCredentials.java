@@ -25,11 +25,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Stream;
 
+import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 
 @Getter
 @JsonIgnoreProperties({"credentials", "client"})
@@ -56,7 +54,7 @@ public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryC
 
   public Collection<Map<String, String>> getRegions() {
     return credentials.getSpaces().all().stream()
-      .map(space -> Stream.of(space.getRegion()).collect(toMap(k -> "name", Function.identity())))
+      .map(space -> singletonMap("name", space.getRegion()))
       .collect(toList());
   }
 }

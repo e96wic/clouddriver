@@ -27,6 +27,8 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.CloudFoundryOperationUtils.describeProcessState;
+
 @RequiredArgsConstructor
 public class StartCloudFoundryServerGroupAtomicOperation implements AtomicOperation<Void> {
   private static final String PHASE = "START_SERVER_GROUP";
@@ -40,7 +42,7 @@ public class StartCloudFoundryServerGroupAtomicOperation implements AtomicOperat
 
   @Override
   public Void operate(List priorOutputs) {
-    getTask().updateStatus(PHASE, "Initializing start of server group " + description.getServerGroupId());
+    getTask().updateStatus(PHASE, "Starting '" + description.getServerGroupName() + "'");
 
     CloudFoundryClient client = description.getClient();
 
@@ -52,12 +54,12 @@ public class StartCloudFoundryServerGroupAtomicOperation implements AtomicOperat
       null, getTask(), description.getServerGroupName(), PHASE);
 
     if (state != ProcessStats.State.RUNNING) {
-      getTask().updateStatus(PHASE, "Failed start server group " + description.getServerGroupName() + " which instead has status " + state.toString().toLowerCase());
+      getTask().updateStatus(PHASE, "Failed to start '" + description.getServerGroupName() + "' which instead " + describeProcessState(state));
       getTask().fail();
       return null;
     }
 
-    getTask().updateStatus(PHASE, "Succeeded in starting server group " + description.getServerGroupId());
+    getTask().updateStatus(PHASE, "Started '" + description.getServerGroupName() + "'");
 
     return null;
   }

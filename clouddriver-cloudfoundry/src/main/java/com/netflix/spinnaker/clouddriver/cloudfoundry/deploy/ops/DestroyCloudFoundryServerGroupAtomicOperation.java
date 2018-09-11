@@ -36,10 +36,10 @@ public class DestroyCloudFoundryServerGroupAtomicOperation implements AtomicOper
 
   @Override
   public Void operate(List priorOutputs) {
-    getTask().updateStatus(PHASE, "Initializing destruction of the server group " + description.getServerGroupName());
+    getTask().updateStatus(PHASE, "Destroying '" + description.getServerGroupName() + "'");
     CloudFoundryClient client = description.getClient();
     client.getApplications().deleteApplication(description.getServerGroupId());
-    getTask().updateStatus(PHASE, "Succeeded in destroying server group " + description.getServerGroupName());
+    getTask().updateStatus(PHASE, "Destroyed '" + description.getServerGroupName() + "'");
     return null;
   }
 }

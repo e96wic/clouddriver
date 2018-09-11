@@ -5,8 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+
+import static java.util.Collections.singletonList;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Getter
@@ -19,22 +22,21 @@ public class CreateApplication {
   private final BuildpackLifecycle lifecycle;
 
   public CreateApplication(String name, Map<String, ToOneRelationship> relationships, Map<String, String> environmentVariables,
-                           @Nullable String buildpack) {
+                           String buildpack) {
     this.name = name;
     this.relationships = relationships;
     this.environmentVariables = environmentVariables;
-    this.lifecycle = buildpack != null ? new BuildpackLifecycle(buildpack) : null;
+    this.lifecycle = new BuildpackLifecycle(buildpack);
   }
 
   @AllArgsConstructor
   @Getter
   public static class BuildpackLifecycle {
-    private String type = "buildpacks";
-    private Map<String, String> data;
+    private String type = "buildpack";
+    private Map<String, List<String>> data;
 
     BuildpackLifecycle(String buildpack) {
-      this.data = new HashMap<>();
-      data.put("buildpack", buildpack);
+      this.data = Collections.singletonMap("buildpacks", singletonList(buildpack != null && buildpack.length() > 0 ? buildpack : null));
     }
   }
 }
