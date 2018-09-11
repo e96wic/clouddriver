@@ -28,7 +28,7 @@ import java.util.Map;
 
 @CloudFoundryOperation(AtomicOperations.TERMINATE_INSTANCES)
 @Component
-public class TerminateCloudFoundryInstancesAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+public class TerminateCloudFoundryInstancesAtomicOperationConverter extends AbstractCloudFoundryServerGroupAtomicOperationConverter {
   @Override
   public AtomicOperation convertOperation(Map input) {
     return new TerminateCloudFoundryInstancesAtomicOperation(convertDescription(input));
@@ -37,7 +37,7 @@ public class TerminateCloudFoundryInstancesAtomicOperationConverter extends Abst
   @Override
   public TerminateCloudFoundryInstancesDescription convertDescription(Map input) {
     TerminateCloudFoundryInstancesDescription converted = getObjectMapper().convertValue(input, TerminateCloudFoundryInstancesDescription.class);
-    converted.setCredentials(getCredentialsObject(input.get("credentials").toString()));
+    converted.setClient(getClient(input));
     return converted;
   }
 }

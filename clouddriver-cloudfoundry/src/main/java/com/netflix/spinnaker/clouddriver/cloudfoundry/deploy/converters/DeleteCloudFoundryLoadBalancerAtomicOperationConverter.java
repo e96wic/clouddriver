@@ -41,14 +41,14 @@ public class DeleteCloudFoundryLoadBalancerAtomicOperationConverter extends Abst
   @Override
   public DeleteCloudFoundryLoadBalancerDescription convertDescription(Map input) {
     DeleteCloudFoundryLoadBalancerDescription converted = getObjectMapper().convertValue(input, DeleteCloudFoundryLoadBalancerDescription.class);
-    converted.setCredentials(getCredentialsObject(input.get("credentials").toString()));
+    converted.setClient(getClient(input));
 
     return ((Collection<String>) input.get("regions")).stream()
-      .map(region -> findSpace(region, converted.getCredentials()))
+      .map(region -> findSpace(region, converted.getClient()))
       .filter(Optional::isPresent)
       .findFirst()
       .flatMap(identity())
-      .map(space -> converted.setLoadBalancer(converted.getCredentials().getClient()
+      .map(space -> converted.setLoadBalancer(converted.getClient()
         .getRoutes().findByLoadBalancerName(input.get("loadBalancerName").toString(), space.getId())))
       .orElseThrow(() -> new IllegalArgumentException("Unable to find the space(s) that this load balancer was expected to be in."));
   }

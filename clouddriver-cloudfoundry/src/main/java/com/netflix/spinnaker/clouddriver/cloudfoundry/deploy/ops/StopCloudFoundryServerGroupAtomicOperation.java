@@ -36,10 +36,10 @@ public class StopCloudFoundryServerGroupAtomicOperation implements AtomicOperati
 
   @Override
   public Void operate(List priorOutputs) {
-    getTask().updateStatus(PHASE, "Initializing stop of server group " + description.getServerGroupName() + ".");
-    CloudFoundryClient client = description.getCredentials().getClient();
+    getTask().updateStatus(PHASE, "Initializing stop of server group " + description.getServerGroupName());
+    CloudFoundryClient client = description.getClient();
     client.getApplications().stopApplication(description.getServerGroupId());
-    getTask().updateStatus(PHASE, "Succeeded in stopping server group " + description.getServerGroupName() + ".");
+    getTask().updateStatus(PHASE, "Succeeded in stopping server group " + description.getServerGroupName());
     return null;
   }
 }

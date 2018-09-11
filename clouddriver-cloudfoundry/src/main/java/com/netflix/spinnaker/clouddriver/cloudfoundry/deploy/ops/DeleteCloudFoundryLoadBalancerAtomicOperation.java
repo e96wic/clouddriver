@@ -36,15 +36,15 @@ public class DeleteCloudFoundryLoadBalancerAtomicOperation implements AtomicOper
 
   @Override
   public Void operate(List priorOutputs) {
-    CloudFoundryClient client = description.getCredentials().getClient();
+    CloudFoundryClient client = description.getClient();
 
     if (description.getLoadBalancer() == null) {
-      getTask().updateStatus(PHASE, "Load balancer " + description.getLoadBalancerName() + " does not exist.");
+      getTask().updateStatus(PHASE, "Load balancer " + description.getLoadBalancer().getName() + " does not exist");
       getTask().fail();
     } else {
-      getTask().updateStatus(PHASE, "Deleting of load balancer " + description.getLoadBalancerName() + ".");
+      getTask().updateStatus(PHASE, "Deleting load balancer " + description.getLoadBalancer().getName());
       client.getRoutes().deleteRoute(description.getLoadBalancer().getId());
-      getTask().updateStatus(PHASE, "Deleted load balancer " + description.getLoadBalancerName() + ".");
+      getTask().updateStatus(PHASE, "Deleted load balancer " + description.getLoadBalancer().getName());
     }
 
     return null;

@@ -16,15 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
-import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 
 import javax.annotation.Nullable;
 
 public abstract class AbstractCloudFoundryServerGroupAtomicOperationConverter extends AbstractCloudFoundryAtomicOperationConverter {
   @Nullable
-  protected String getServerGroupId(String serverGroupName, String region, CloudFoundryCredentials credentials) {
-    return findSpace(region, credentials)
-      .map(space -> credentials.getClient().getApplications().findServerGroupId(serverGroupName, space.getId()))
+  protected String getServerGroupId(String serverGroupName, String region, CloudFoundryClient client) {
+    return findSpace(region, client)
+      .map(space -> client.getApplications().findServerGroupId(serverGroupName, space.getId()))
       .orElse(null);
   }
 }

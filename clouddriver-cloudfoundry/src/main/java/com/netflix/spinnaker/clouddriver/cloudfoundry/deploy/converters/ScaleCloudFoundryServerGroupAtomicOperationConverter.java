@@ -44,8 +44,8 @@ public class ScaleCloudFoundryServerGroupAtomicOperationConverter extends Abstra
   @Override
   public ScaleCloudFoundryServerGroupDescription convertDescription(Map input) {
     ScaleCloudFoundryServerGroupDescription converted = getObjectMapper().convertValue(input, ScaleCloudFoundryServerGroupDescription.class);
-    converted.setCredentials(getCredentialsObject(input.get("credentials").toString()));
-    converted.setServerGroupId(getServerGroupId(converted.getServerGroupName(), converted.getRegion(), converted.getCredentials()));
+    converted.setClient(getClient(input));
+    converted.setServerGroupId(getServerGroupId(converted.getServerGroupName(), converted.getRegion(), converted.getClient()));
     return converted;
   }
 }

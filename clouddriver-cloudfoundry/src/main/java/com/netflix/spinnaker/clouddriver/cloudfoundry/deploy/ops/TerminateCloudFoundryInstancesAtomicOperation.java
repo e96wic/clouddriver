@@ -41,7 +41,7 @@ public class TerminateCloudFoundryInstancesAtomicOperation implements AtomicOper
   @Override
   public Void operate(List priorOutputs) {
     getTask().updateStatus(PHASE, "Initializing termination of " + instanceDescription());
-    final CloudFoundryClient client = description.getCredentials().getClient();
+    final CloudFoundryClient client = description.getClient();
 
     boolean oneOrMoreFailed = false;
     for (String instance : description.getInstanceIds()) {

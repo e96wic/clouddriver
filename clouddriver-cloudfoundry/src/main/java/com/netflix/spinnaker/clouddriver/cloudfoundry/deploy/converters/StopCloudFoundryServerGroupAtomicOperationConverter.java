@@ -36,8 +36,8 @@ public class StopCloudFoundryServerGroupAtomicOperationConverter extends Abstrac
   @Override
   public StopCloudFoundryServerGroupDescription convertDescription(Map input) {
     StopCloudFoundryServerGroupDescription converted = getObjectMapper().convertValue(input, StopCloudFoundryServerGroupDescription.class);
-    converted.setCredentials(getCredentialsObject(input.get("credentials").toString()));
-    converted.setServerGroupId(getServerGroupId(converted.getServerGroupName(), converted.getRegion(), converted.getCredentials()));
+    converted.setClient(getClient(input));
+    converted.setServerGroupId(getServerGroupId(converted.getServerGroupName(), converted.getRegion(), converted.getClient()));
     return converted;
   }
 }

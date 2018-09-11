@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.artifacts.gcs.GcsArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.artifacts.http.HttpArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.PackageArtifactCredentials;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.DeployCloudFoundryServerGroupAtomicOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.view.CloudFoundryClusterProvider;
@@ -67,9 +68,11 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter extends Abstr
   @Override
   public DeployCloudFoundryServerGroupDescription convertDescription(Map input) {
     DeployCloudFoundryServerGroupDescription converted = getObjectMapper().convertValue(input, DeployCloudFoundryServerGroupDescription.class);
-    converted.setCredentials(getCredentialsObject(input.get("credentials").toString()));
+    CloudFoundryCredentials credentials = getCredentialsObject(input.get("credentials").toString());
+    converted.setClient(credentials.getClient());
+    converted.setAccountName(credentials.getName());
 
-    converted.setSpace(findSpace(converted.getRegion(), converted.getCredentials())
+    converted.setSpace(findSpace(converted.getRegion(), converted.getClient())
       .orElseThrow(() -> new IllegalArgumentException("Unable to find space '" + converted.getRegion() + "'.")));
 
     Map artifactSource = (Map) input.get("artifactSource");
@@ -83,13 +86,13 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter extends Abstr
       converted.setArtifact(convertToArtifact(artifactSource.get("account").toString(), artifactSource.get("reference").toString()));
       converted.setArtifactCredentials(artifactCredentials);
     } else if ("package".equals(artifactSource.get("type"))) {
-      CloudFoundryCredentials credentials = getCredentialsObject(artifactSource.get("account").toString());
+      CloudFoundryCredentials accountCredentials = getCredentialsObject(artifactSource.get("account").toString());
       converted.setArtifactCredentials(new PackageArtifactCredentials(credentials.getClient()));
 
       Artifact artifact = new Artifact();
       artifact.setType("package");
       artifact.setReference(getServerGroupId(artifactSource.get("serverGroupName").toString(),
-        artifactSource.get("region").toString(), credentials));
+        artifactSource.get("region").toString(), accountCredentials.getClient()));
       converted.setArtifact(artifact);
     }
 

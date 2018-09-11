@@ -44,8 +44,8 @@ public class StartCloudFoundryServerGroupAtomicOperationConverter extends Abstra
   @Override
   public StartCloudFoundryServerGroupDescription convertDescription(Map input) {
     StartCloudFoundryServerGroupDescription converted = getObjectMapper().convertValue(input, StartCloudFoundryServerGroupDescription.class);
-    converted.setCredentials(getCredentialsObject(input.get("credentials").toString()));
-    converted.setServerGroupId(getServerGroupId(converted.getServerGroupName(), converted.getRegion(), converted.getCredentials()));
+    converted.setClient(getClient(input));
+    converted.setServerGroupId(getServerGroupId(converted.getServerGroupName(), converted.getRegion(), converted.getClient()));
     return converted;
   }
 }

@@ -19,8 +19,10 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryDomain;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class UpsertCloudFoundryLoadBalancerDescription extends AbstractCloudFoundryLoadBalancerDescription {
   private String host;
   private String path;

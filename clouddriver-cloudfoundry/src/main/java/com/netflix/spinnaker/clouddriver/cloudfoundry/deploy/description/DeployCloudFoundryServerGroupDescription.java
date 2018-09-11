@@ -21,12 +21,15 @@ import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 import java.util.Map;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class DeployCloudFoundryServerGroupDescription extends AbstractCloudFoundryServerGroupDescription {
+  private String accountName;
   private String application;
   private String stack;
   private String detail;

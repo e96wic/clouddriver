@@ -40,9 +40,9 @@ public class StartCloudFoundryServerGroupAtomicOperation implements AtomicOperat
 
   @Override
   public Void operate(List priorOutputs) {
-    getTask().updateStatus(PHASE, "Initializing start of server group " + description.getServerGroupId() + ".");
+    getTask().updateStatus(PHASE, "Initializing start of server group " + description.getServerGroupId());
 
-    CloudFoundryClient client = description.getCredentials().getClient();
+    CloudFoundryClient client = description.getClient();
 
     client.getApplications().startApplication(description.getServerGroupId());
 
@@ -52,12 +52,12 @@ public class StartCloudFoundryServerGroupAtomicOperation implements AtomicOperat
       null, getTask(), description.getServerGroupName(), PHASE);
 
     if (state != ProcessStats.State.RUNNING) {
-      getTask().updateStatus(PHASE, "Failed start server group " + description.getServerGroupName() + ". status " + state.toString().toLowerCase());
+      getTask().updateStatus(PHASE, "Failed start server group " + description.getServerGroupName() + " which instead has status " + state.toString().toLowerCase());
       getTask().fail();
       return null;
     }
 
-    getTask().updateStatus(PHASE, "Succeeded in starting server group " + description.getServerGroupId() + ".");
+    getTask().updateStatus(PHASE, "Succeeded in starting server group " + description.getServerGroupId());
 
     return null;
   }

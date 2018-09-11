@@ -21,6 +21,5 @@ import lombok.Data;
 
 @Data
 public abstract class AbstractCloudFoundryLoadBalancerDescription extends AbstractCloudFoundryDescription {
-  String loadBalancerName;
   CloudFoundrySpace space;
 }

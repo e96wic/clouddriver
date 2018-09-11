@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ApplicationService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.CreateApplication;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.CreateApplication;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ApplicationEnv;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.MapRoute;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.*;
@@ -172,7 +172,9 @@ public class Applications {
             .id(apiDroplet.getGuid())
             .name(application.getName() + "-droplet")
             .stack(apiDroplet.getStack())
-            .buildpacks(apiDroplet.getBuildpacks().stream()
+            .buildpacks(Optional.ofNullable(apiDroplet.getBuildpacks())
+              .orElse(emptyList())
+              .stream()
               .map(bp -> CloudFoundryBuildpack.builder()
                 .name(bp.getName())
                 .detectOutput(bp.getDetectOutput())
@@ -180,7 +182,8 @@ public class Applications {
                 .buildpackName(bp.getBuildpackName())
                 .build()
               )
-              .collect(toList()))
+              .collect(toList())
+            )
             .space(space)
             .sourcePackage(cfPackage)
             .build()
@@ -214,6 +217,7 @@ public class Applications {
       .createdTime(application.getCreatedAt().toInstant().toEpochMilli())
       .serviceInstances(cloudFoundryServices)
       .instances(instances)
+      .state(state)
       .build();
   }
 

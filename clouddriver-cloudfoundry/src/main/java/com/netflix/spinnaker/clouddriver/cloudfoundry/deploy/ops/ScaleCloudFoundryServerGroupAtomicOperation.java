@@ -40,9 +40,9 @@ public class ScaleCloudFoundryServerGroupAtomicOperation implements AtomicOperat
 
   @Override
   public Void operate(List priorOutputs) {
-    getTask().updateStatus(PHASE, "Initializing resizing of server group " + description.getServerGroupName() + ".");
+    getTask().updateStatus(PHASE, "Initializing resizing of server group " + description.getServerGroupName());
 
-    final CloudFoundryClient client = description.getCredentials().getClient();
+    final CloudFoundryClient client = description.getClient();
 
     client.getApplications().scaleApplication(description.getServerGroupId(), description.getInstanceCount(), description.getMemoryInMb(), description.getDiskInMb());
 
@@ -52,12 +52,12 @@ public class ScaleCloudFoundryServerGroupAtomicOperation implements AtomicOperat
       null, getTask(), description.getServerGroupName(), PHASE);
 
     if (state != ProcessStats.State.RUNNING) {
-      getTask().updateStatus(PHASE, "Failed start server group " + description.getServerGroupName() + ". status " + state.toString().toLowerCase());
+      getTask().updateStatus(PHASE, "Failed start server group " + description.getServerGroupName() + " which instead has status " + state.toString().toLowerCase());
       getTask().fail();
       return null;
     }
 
-    getTask().updateStatus(PHASE, "Done resizing server group " + description.getServerGroupName() + ".");
+    getTask().updateStatus(PHASE, "Done resizing server group " + description.getServerGroupName());
 
     return null;
   }

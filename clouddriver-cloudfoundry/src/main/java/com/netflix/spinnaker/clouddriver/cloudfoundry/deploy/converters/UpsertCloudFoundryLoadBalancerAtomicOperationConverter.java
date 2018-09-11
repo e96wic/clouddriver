@@ -36,11 +36,11 @@ public class UpsertCloudFoundryLoadBalancerAtomicOperationConverter extends Abst
   @Override
   public UpsertCloudFoundryLoadBalancerDescription convertDescription(Map input) {
     UpsertCloudFoundryLoadBalancerDescription converted = getObjectMapper().convertValue(input, UpsertCloudFoundryLoadBalancerDescription.class);
-    converted.setCredentials(getCredentialsObject(input.get("credentials").toString()));
-    findSpace(converted.getRegion(), converted.getCredentials())
+    converted.setClient(getClient(input));
+    findSpace(converted.getRegion(), converted.getClient())
       .map(converted::setSpace)
       .orElseThrow(() -> new IllegalArgumentException("Unable to find space '" + converted.getRegion() + "'."));
-    converted.setDomain(converted.getCredentials().getClient()
+    converted.setDomain(converted.getClient()
       .getDomains().findByName(input.get("domain").toString()));
     return converted;
   }

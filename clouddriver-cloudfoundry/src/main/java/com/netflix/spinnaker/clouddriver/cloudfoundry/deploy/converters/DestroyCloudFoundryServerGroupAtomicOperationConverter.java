@@ -36,8 +36,8 @@ public class DestroyCloudFoundryServerGroupAtomicOperationConverter extends Abst
   @Override
   public DestroyCloudFoundryServerGroupDescription convertDescription(Map input) {
     DestroyCloudFoundryServerGroupDescription converted = getObjectMapper().convertValue(input, DestroyCloudFoundryServerGroupDescription.class);
-    converted.setCredentials(getCredentialsObject(input.get("credentials").toString()));
-    converted.setServerGroupId(getServerGroupId(converted.getServerGroupName(), converted.getRegion(), converted.getCredentials()));
+    converted.setClient(getClient(input));
+    converted.setServerGroupId(getServerGroupId(converted.getServerGroupName(), converted.getRegion(), converted.getClient()));
     return converted;
   }
 }

@@ -18,10 +18,12 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryLoadBalancer;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import javax.annotation.Nullable;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class DeleteCloudFoundryLoadBalancerDescription extends AbstractCloudFoundryLoadBalancerDescription {
   @Nullable
   private CloudFoundryLoadBalancer loadBalancer;

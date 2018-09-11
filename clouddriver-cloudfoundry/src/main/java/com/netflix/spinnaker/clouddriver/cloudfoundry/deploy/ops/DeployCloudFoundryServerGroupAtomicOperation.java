@@ -24,7 +24,6 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryLoadBala
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServerGroup;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.view.CloudFoundryClusterProvider;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult;
@@ -57,10 +56,9 @@ public class DeployCloudFoundryServerGroupAtomicOperation implements AtomicOpera
   public DeploymentResult operate(List priorOutputs) {
     getTask().updateStatus(PHASE, "Initializing deployment of " + description.getApplication());
 
-    CloudFoundryCredentials credentials = description.getCredentials();
-    final CloudFoundryClient client = credentials.getClient();
+    CloudFoundryClient client = description.getClient();
 
-    CloudFoundryServerGroupNameResolver serverGroupNameResolver = new CloudFoundryServerGroupNameResolver(credentials.getName(),
+    CloudFoundryServerGroupNameResolver serverGroupNameResolver = new CloudFoundryServerGroupNameResolver(description.getAccountName(),
       clusterProvider, description.getSpace());
 
     description.setServerGroupName(serverGroupNameResolver.resolveNextServerGroupName(description.getApplication(),
@@ -74,7 +72,7 @@ public class DeployCloudFoundryServerGroupAtomicOperation implements AtomicOpera
 
     client.getServiceInstances().createServiceBindingsByName(serverGroup, description.getApplicationAttributes().getServices());
 
-    if (!mapRoutes(description.getApplicationAttributes().getRoutes(), this.description.getSpace(), serverGroup.getId())) {
+    if (!mapRoutes(description.getApplicationAttributes().getRoutes(), description.getSpace(), serverGroup.getId())) {
       return deploymentResult();
     }
 
@@ -105,8 +103,8 @@ public class DeployCloudFoundryServerGroupAtomicOperation implements AtomicOpera
     return deploymentResult;
   }
 
-  private static CloudFoundryServerGroup createApplication(final DeployCloudFoundryServerGroupDescription description) {
-    CloudFoundryClient client = description.getCredentials().getClient();
+  private static CloudFoundryServerGroup createApplication(DeployCloudFoundryServerGroupDescription description) {
+    CloudFoundryClient client = description.getClient();
     getTask().updateStatus(PHASE, "Creating application " + description.getServerGroupName());
 
     Map<String, String> convertedEnvVariables = Optional.ofNullable(description.getApplicationAttributes().getEnv())
@@ -120,8 +118,8 @@ public class DeployCloudFoundryServerGroupAtomicOperation implements AtomicOpera
     return serverGroup;
   }
 
-  private String buildPackage(String serverGroupId, final DeployCloudFoundryServerGroupDescription description) {
-    final CloudFoundryClient client = description.getCredentials().getClient();
+  private String buildPackage(String serverGroupId, DeployCloudFoundryServerGroupDescription description) {
+    final CloudFoundryClient client = description.getClient();
     getTask().updateStatus(PHASE, "Creating package for application " + description.getServerGroupName());
 
     final String packageId = client.getApplications().createPackage(serverGroupId);
@@ -151,8 +149,8 @@ public class DeployCloudFoundryServerGroupAtomicOperation implements AtomicOpera
     return packageId;
   }
 
-  private void buildDroplet(final String packageId, String serverGroupId, DeployCloudFoundryServerGroupDescription description) {
-    final CloudFoundryClient client = description.getCredentials().getClient();
+  private void buildDroplet(String packageId, String serverGroupId, DeployCloudFoundryServerGroupDescription description) {
+    final CloudFoundryClient client = description.getClient();
     getTask().updateStatus(PHASE, "Building droplet for package " + packageId);
 
     String buildId = client.getApplications().createBuild(packageId);
@@ -166,8 +164,8 @@ public class DeployCloudFoundryServerGroupAtomicOperation implements AtomicOpera
     getTask().updateStatus(PHASE, "Completed building droplet for package " + packageId);
   }
 
-  private void scaleApplication(String serverGroupId, final DeployCloudFoundryServerGroupDescription description) {
-    CloudFoundryClient client = description.getCredentials().getClient();
+  private void scaleApplication(String serverGroupId, DeployCloudFoundryServerGroupDescription description) {
+    CloudFoundryClient client = description.getClient();
     getTask().updateStatus(PHASE, "Scaling the application to desired state " + description.getServerGroupName());
 
     Integer memoryAmount = convertToMb("memory", description.getApplicationAttributes().getMemory());
@@ -197,12 +195,13 @@ public class DeployCloudFoundryServerGroupAtomicOperation implements AtomicOpera
     throw new IllegalArgumentException("Invalid size for application " + field + "'" + size + "'");
   }
 
-  private boolean mapRoutes(List<String> routes, final CloudFoundrySpace space, final String serverGroupId) {
+  // VisibleForTesting
+  boolean mapRoutes(List<String> routes, CloudFoundrySpace space, String serverGroupId) {
     getTask().updateStatus(PHASE, "Upserting load balancers");
 
     List<String> badRoutes = new ArrayList<>();
 
-    CloudFoundryClient client = description.getCredentials().getClient();
+    CloudFoundryClient client = description.getClient();
     List<CloudFoundryLoadBalancer> loadBalancers = routes.stream()
       .map(routePath -> {
         CloudFoundryLoadBalancer lb = client.getRoutes().findByLoadBalancerName(routePath, space.getId());

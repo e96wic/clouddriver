@@ -17,8 +17,10 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class TerminateCloudFoundryInstancesDescription extends AbstractCloudFoundryDescription {
   private String[] instanceIds;
 }

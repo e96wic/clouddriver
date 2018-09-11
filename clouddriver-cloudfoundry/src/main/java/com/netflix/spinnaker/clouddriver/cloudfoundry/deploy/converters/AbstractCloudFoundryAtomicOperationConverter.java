@@ -16,19 +16,26 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
 
+import java.util.Map;
 import java.util.Optional;
 
 abstract class AbstractCloudFoundryAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
-  protected Optional<CloudFoundrySpace> findSpace(String region, CloudFoundryCredentials credentials) {
+  protected Optional<CloudFoundrySpace> findSpace(String region, CloudFoundryClient client) {
     CloudFoundrySpace space = CloudFoundrySpace.fromRegion(region);
 
     // fully populates the space guid which is what Cloud Foundry's API expects as an input, not the name.
-    return credentials.getClient().getOrganizations()
+    return client.getOrganizations()
       .findByName(space.getOrganization().getName())
-      .map(org -> credentials.getCredentials().getSpaces().findByName(org.getId(), space.getName()));
+      .map(org -> client.getSpaces().findByName(org.getId(), space.getName()));
+  }
+
+  protected CloudFoundryClient getClient(Map<?, ?> input) {
+    CloudFoundryCredentials credentials = getCredentialsObject(input.get("credentials").toString());
+    return credentials.getClient();
   }
 }

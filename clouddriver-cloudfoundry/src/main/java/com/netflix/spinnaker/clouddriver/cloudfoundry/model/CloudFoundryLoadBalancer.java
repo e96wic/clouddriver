@@ -51,7 +51,6 @@ public class CloudFoundryLoadBalancer extends CloudFoundryModel implements LoadB
   String id;
 
   @JsonView(Views.Cache.class)
-  @Nullable
   String host;
 
   @JsonView(Views.Cache.class)

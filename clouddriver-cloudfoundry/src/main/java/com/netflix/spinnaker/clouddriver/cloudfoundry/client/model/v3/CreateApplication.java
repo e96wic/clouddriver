@@ -1,7 +1,6 @@
-package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model;
+package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ToOneRelationship;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -33,7 +32,7 @@ public class CreateApplication {
     private String type = "buildpacks";
     private Map<String, String> data;
 
-    public BuildpackLifecycle(String buildpack) {
+    BuildpackLifecycle(String buildpack) {
       this.data = new HashMap<>();
       data.put("buildpack", buildpack);
     }
