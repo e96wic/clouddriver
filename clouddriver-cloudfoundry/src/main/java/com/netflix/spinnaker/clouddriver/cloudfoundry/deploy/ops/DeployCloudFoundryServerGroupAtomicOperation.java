@@ -39,7 +39,8 @@ import java.util.*;
 import java.util.function.Function;
 
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.CloudFoundryOperationUtils.describeProcessState;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 @RequiredArgsConstructor
 public class DeployCloudFoundryServerGroupAtomicOperation implements AtomicOperation<DeploymentResult> {
@@ -199,30 +200,29 @@ public class DeployCloudFoundryServerGroupAtomicOperation implements AtomicOpera
   private boolean mapRoutes(List<String> routes, CloudFoundrySpace space, String serverGroupId) {
     getTask().updateStatus(PHASE, "Creating or updating load balancers");
 
-    List<String> badRoutes = new ArrayList<>();
+    List<String> invalidRoutes = new ArrayList<>();
 
     CloudFoundryClient client = description.getClient();
     List<CloudFoundryLoadBalancer> loadBalancers = routes.stream()
       .map(routePath -> {
         CloudFoundryLoadBalancer lb = client.getRoutes().findByLoadBalancerName(routePath, space.getId());
         if (lb == null) {
-          badRoutes.add(routePath);
+          invalidRoutes.add(routePath);
+        } else if (lb.getId() == null) {
+          lb = client.getRoutes().createRoute(lb.getHost(), lb.getPath(), lb.getPort(), lb.getDomain().getId(), lb.getSpace().getId());
         }
         return lb;
       })
       .filter(Objects::nonNull)
       .collect(toList());
 
-    if (!badRoutes.isEmpty()) {
-      if (badRoutes.size() == 1) {
-        getTask().updateStatus(PHASE, "The route '" + badRoutes.get(0) + "' does not exist");
-        getTask().fail();
-        return false;
-      } else {
-        getTask().updateStatus(PHASE, "The routes " + badRoutes.stream().map(r -> "'" + r + "'").collect(joining(", ")) + " do not exist");
-        getTask().fail();
-        return false;
-      }
+    for (String routePath : invalidRoutes) {
+      getTask().updateStatus(PHASE, "Invalid format for route '" + routePath + "'");
+    }
+
+    if(!invalidRoutes.isEmpty()) {
+      getTask().fail();
+      return false;
     }
 
     for (CloudFoundryLoadBalancer loadBalancer : loadBalancers) {

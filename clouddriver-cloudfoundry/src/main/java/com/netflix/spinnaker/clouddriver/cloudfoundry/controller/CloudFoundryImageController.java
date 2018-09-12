@@ -30,7 +30,7 @@ public class CloudFoundryImageController {
   public Collection<CloudFoundryCluster> list(@RequestParam(required = false) String account) {
     Stream<CloudFoundryCluster> clusters = account == null ?
       clusterProvider.getClusters().values().stream().flatMap(Set::stream) :
-      clusterProvider.getClusters().get("account").stream();
+      clusterProvider.getClusters().get(account).stream();
 
     return clusters
       .map(cluster -> cluster.withServerGroups(cluster.getServerGroups().stream()
